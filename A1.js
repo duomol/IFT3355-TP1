@@ -55,25 +55,55 @@ function inverseMat(m){
 
 function idMat4(){
   // Create Identity matrix
-
-  // TODO
+  return new THREE.Matrix4().set( 1,0,0,0,
+                            0,1,0,0,
+                            0,0,1,0,
+                            0,0,0,1);
 }
 
 function translateMat(matrix, x, y, z){
   // Apply translation [x, y, z] to @matrix
-  // matrix: THREE.Matrix3
+  // matrix: THREE.Matrix4
   // x, y, z: float
   
-  // TODO
+  var translation = new THREE.Matrix4().set(  1,0,0,x,
+                                              0,1,0,y,
+                                              0,0,1,z,
+                                              0,0,0,1);
+                                      
+  return multMat(translation, matrix);
 }
 
 function rotateMat(matrix, angle, axis){
   // Apply rotation by @angle with respect to @axis to @matrix
-  // matrix: THREE.Matrix3
+  // matrix: THREE.Matrix4
   // angle: float
   // axis: string "x", "y" or "z"
   
-  // TODO
+  var rotation = new THREE.Matrix4();
+  
+  switch(axis) {
+    case "x":
+      rotation.set( 1,0,0,0,
+                    0,Math.cos(angle),-Math.sin(angle),0,
+                    0,Math.sin(angle),Math.cos(angle),0,
+                    0,0,0,1);
+      break;
+    case "y":
+      rotation.set( Math.cos(angle),0,Math.sin(angle),0,
+                    0,1,0,0,
+                    -Math.sin(angle),0,Math.cos(angle),0,
+                    0,0,0,1 );
+      break;
+    case "z":
+      rotation.set( Math.cos(angle),-Math.sin(angle),0,0,
+                    Math.sin(angle),Math.cos(angle),0,0,
+                    0,0,1,0,
+                    0,0,0,1);
+      break;
+  }
+
+  return multMat(rotation, matrix);
 }
 
 function rotateVec3(v, angle, axis){
@@ -81,16 +111,21 @@ function rotateVec3(v, angle, axis){
   // v: THREE.Vector3
   // angle: float
   // axis: string "x", "y" or "z"
-  
+
   // TODO
 }
 
 function rescaleMat(matrix, x, y, z){
   // Apply scaling @x, @y and @z to @matrix
-  // matrix: THREE.Matrix3
+  // matrix: THREE.Matrix4
   // x, y, z: float
   
-  // TODO
+  var scaling = new THREE.Matrix4().set(  x,0,0,0,
+                                          0,y,0,0,
+                                          0,0,z,0,
+                                          0,0,0,1);
+
+  return multMat(scaling, matrix);
 }
 
 class Robot {
@@ -114,7 +149,7 @@ class Robot {
 
   initialTorsoMatrix(){
     var initialTorsoMatrix = idMat4();
-    initialTorsoMatrix = translateMat(initialTorsoMatrix, 0,this.torsoHeight/2, 0);
+    initialTorsoMatrix = translateMat(initialTorsoMatrix, 0, this.torsoHeight/2, 0);
 
     return initialTorsoMatrix;
   }
