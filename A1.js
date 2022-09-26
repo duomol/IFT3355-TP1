@@ -134,6 +134,7 @@ class Robot {
     this.torsoHeight = 1.5;
     this.torsoRadius = 0.75;
     this.headRadius = 0.32;
+    this.shoulderRadius = 0.32;
     // Add parameters for parts
     // TODO
 
@@ -160,7 +161,17 @@ class Robot {
 
     return initialHeadMatrix;
   }
+  initialBrasGaucheMatrix(){
+    var initialBrasGaucheMatrix = idMat4();
+    initialBrasGaucheMatrix = translateMat(initialBrasGaucheMatrix, this.torsoRadius *1.2, this.torsoHeight/2 + this.headRadius, 0);
+    return initialBrasGaucheMatrix;
+    }
 
+    initialBrasDroitMatrix(){
+    var initialBrasDroitMatrix = idMat4();
+    initialBrasDroitMatrix = translateMat(initialBrasDroitMatrix, this.torsoRadius *-1.2, this.torsoHeight/2 + this.headRadius, 0);
+    return initialBrasDroitMatrix;
+    }
   initialize() {
     // Torso
     var torsoGeometry = new THREE.CubeGeometry(2*this.torsoRadius, this.torsoHeight, this.torsoRadius, 64);
@@ -172,7 +183,14 @@ class Robot {
 
     // Add parts
     // TODO
-
+	  
+    // Bras Gauche
+    var brasGauche =  new THREE.SphereGeometry( this.shoulderRadius, 16 , 45 );
+    this.brasGauche = new THREE.Mesh(brasGauche, this.material);
+    // Bras Droit
+    var brasDroit =  new THREE.SphereGeometry( this.shoulderRadius, 16 , 45 );
+    this.brasDroit = new THREE.Mesh(brasDroit, this.material);
+	  
     // Torse transformation
     this.torsoInitialMatrix = this.initialTorsoMatrix();
     this.torsoMatrix = idMat4();
@@ -186,12 +204,23 @@ class Robot {
 
     // Add transformations
     // TODO
-
+	  
+    // Bras transformation
+    this.BrasGaucheInitialMatrix = this.initialBrasGaucheMatrix();
+    this.brasGaucheMatrix = idMat4();
+    this.brasGauche.setMatrix(this.BrasGaucheInitialMatrix);
+    // Bras transformation
+    this.BrasDroitInitialMatrix = this.initialBrasDroitMatrix();
+    this.brasDroitMatrix = idMat4();
+    this.brasDroit.setMatrix(this.BrasDroitInitialMatrix);
+	  
 	// Add robot to scene
 	scene.add(this.torso);
     scene.add(this.head);
     // Add parts
     // TODO
+    scene.add(this.brasGauche);
+    scene.add(this.brasDroit);
   }
 
   rotateTorso(angle){
