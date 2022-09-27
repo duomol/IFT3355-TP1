@@ -56,21 +56,21 @@ function inverseMat(m){
 function idMat4(){
   // Create Identity matrix
   return new THREE.Matrix4().set( 1,0,0,0,
-                            0,1,0,0,
-                            0,0,1,0,
-                            0,0,0,1);
+                                  0,1,0,0,
+                                  0,0,1,0,
+                                  0,0,0,1);
 }
 
 function translateMat(matrix, x, y, z){
   // Apply translation [x, y, z] to @matrix
   // matrix: THREE.Matrix4
   // x, y, z: float
-  
+
   var translation = new THREE.Matrix4().set(  1,0,0,x,
-                                              0,1,0,y,
-                                              0,0,1,z,
-                                              0,0,0,1);
-                                      
+      0,1,0,y,
+      0,0,1,z,
+      0,0,0,1);
+
   return multMat(translation, matrix);
 }
 
@@ -79,27 +79,27 @@ function rotateMat(matrix, angle, axis){
   // matrix: THREE.Matrix4
   // angle: float
   // axis: string "x", "y" or "z"
-  
+
   var rotation = new THREE.Matrix4();
-  
+
   switch(axis) {
     case "x":
       rotation.set( 1,0,0,0,
-                    0,Math.cos(angle),-Math.sin(angle),0,
-                    0,Math.sin(angle),Math.cos(angle),0,
-                    0,0,0,1);
+          0,Math.cos(angle),-Math.sin(angle),0,
+          0,Math.sin(angle),Math.cos(angle),0,
+          0,0,0,1);
       break;
     case "y":
       rotation.set( Math.cos(angle),0,Math.sin(angle),0,
-                    0,1,0,0,
-                    -Math.sin(angle),0,Math.cos(angle),0,
-                    0,0,0,1 );
+          0,1,0,0,
+          -Math.sin(angle),0,Math.cos(angle),0,
+          0,0,0,1 );
       break;
     case "z":
       rotation.set( Math.cos(angle),-Math.sin(angle),0,0,
-                    Math.sin(angle),Math.cos(angle),0,0,
-                    0,0,1,0,
-                    0,0,0,1);
+          Math.sin(angle),Math.cos(angle),0,0,
+          0,0,1,0,
+          0,0,0,1);
       break;
   }
 
@@ -112,6 +112,7 @@ function rotateVec3(v, angle, axis){
   // angle: float
   // axis: string "x", "y" or "z"
 
+
   // TODO
 }
 
@@ -119,11 +120,11 @@ function rescaleMat(matrix, x, y, z){
   // Apply scaling @x, @y and @z to @matrix
   // matrix: THREE.Matrix4
   // x, y, z: float
-  
+
   var scaling = new THREE.Matrix4().set(  x,0,0,0,
-                                          0,y,0,0,
-                                          0,0,z,0,
-                                          0,0,0,1);
+      0,y,0,0,
+      0,0,z,0,
+      0,0,0,1);
 
   return multMat(scaling, matrix);
 }
@@ -136,7 +137,7 @@ class Robot {
     this.headRadius = 0.32;
     // Add parameters for parts
     // TODO
-
+    this.shoulderRadius = 0.32;
     // Animation
     this.walkDirection = new THREE.Vector3( 0, 0, 1 );
 
@@ -161,6 +162,17 @@ class Robot {
     return initialHeadMatrix;
   }
 
+  initialBrasGaucheMatrix(){
+    var initialBrasGaucheMatrix = idMat4();
+    initialBrasGaucheMatrix = translateMat(initialBrasGaucheMatrix, this.torsoRadius*1.2, this.torsoHeight*0.8 , 0);
+    return initialBrasGaucheMatrix;
+  }
+
+  initialBrasDroitMatrix(){
+    var initialBrasDroitMatrix = idMat4();
+    initialBrasDroitMatrix = translateMat(initialBrasDroitMatrix, this.torsoRadius*-1.2 , this.torsoHeight*0.8 , 0);
+    return initialBrasDroitMatrix;
+  }
   initialize() {
     // Torso
     var torsoGeometry = new THREE.CubeGeometry(2*this.torsoRadius, this.torsoHeight, this.torsoRadius, 64);
@@ -171,7 +183,18 @@ class Robot {
     this.head = new THREE.Mesh(headGeometry, this.material);
 
     // Add parts
+
+
     // TODO
+    // Bras Gauche
+    var brasGauche =  new THREE.SphereGeometry( this.shoulderRadius, 16 , 45 );
+    this.brasGauche = new THREE.Mesh(brasGauche, this.material);
+    // Bras Droit
+    var brasDroit =  new THREE.SphereGeometry( this.shoulderRadius, 16 , 45 );
+    this.brasDroit = new THREE.Mesh(brasDroit, this.material);
+
+
+
 
     // Torse transformation
     this.torsoInitialMatrix = this.initialTorsoMatrix();
@@ -186,12 +209,23 @@ class Robot {
 
     // Add transformations
     // TODO
+    // Bras transformation
+    this.BrasGaucheInitialMatrix = this.initialBrasGaucheMatrix();
+    this.brasGaucheMatrix = idMat4();
+    var matrix1 = multMat(this.torsoInitialMatrix, this.BrasGaucheInitialMatrix);
+    this.brasGauche.setMatrix(matrix1);
 
-	// Add robot to scene
-	scene.add(this.torso);
+    // Bras transformation
+    this.BrasDroitInitialMatrix = this.initialBrasDroitMatrix();
+    this.brasDroitMatrix = idMat4();
+    this.brasDroit.setMatrix(this.BrasDroitInitialMatrix);
+    // Add robot to scene
+    scene.add(this.torso);
     scene.add(this.head);
     // Add parts
     // TODO
+    scene.add(this.brasGauche);
+    scene.add(this.brasDroit);
   }
 
   rotateTorso(angle){
@@ -220,6 +254,15 @@ class Robot {
     var matrix2 = multMat(this.headMatrix, this.headInitialMatrix);
     matrix = multMat(matrix, matrix2);
     this.head.setMatrix(matrix);
+
+
+    var matrix3 = multMat(this.brasGaucheMatrix, this.BrasGaucheInitialMatrix);
+    matrix = multMat(matrix3, matrix);
+    this.brasGauche.setMatrix(matrix);
+
+    /*var matrix4 = multMat(this.brasDroitMatrix, this.BrasDroitInitialMatrix);
+    //matrix = multMat(matrix, matrix4);
+    this.brasDroit.setMatrix(matrix);*/
   }
 
   rotateHead(angle){
@@ -292,8 +335,8 @@ function checkKeyboard() {
         break;
       case "Head":
         break;
-      // Add more cases
-      // TODO
+        // Add more cases
+        // TODO
     }
   }
 
@@ -305,8 +348,8 @@ function checkKeyboard() {
         break;
       case "Head":
         break;
-      // Add more cases
-      // TODO
+        // Add more cases
+        // TODO
     }
   }
 
@@ -319,8 +362,8 @@ function checkKeyboard() {
       case "Head":
         robot.rotateHead(0.1);
         break;
-      // Add more cases
-      // TODO
+        // Add more cases
+        // TODO
     }
   }
 
@@ -333,8 +376,8 @@ function checkKeyboard() {
       case "Head":
         robot.rotateHead(-0.1);
         break;
-      // Add more cases
-      // TODO
+        // Add more cases
+        // TODO
     }
   }
 }
